@@ -1,0 +1,28 @@
+{
+  "name": "TicTacToe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build" : "webpack  --progress"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mariusz256/TicTacToeJS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mariusz256/TicTacToeJS/issues"
+  },
+  "homepage": "https://github.com/mariusz256/TicTacToeJS#readme",
+  "dependencies": {
+    "three": "^0.136.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1"
+  }
+}
