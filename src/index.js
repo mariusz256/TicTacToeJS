@@ -2,12 +2,13 @@
 import * as THREE from "three";
 
 // Window resize
-const onWindowResize = () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  renderer.setSize(window.innerWidth * 0.9, window.innerWidth * 0.5);
-};
 
 window.addEventListener("resize", onWindowResize, false);
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  renderer.setSize(window.innerWidth * 0.9, window.innerWidth * 0.5);
+}
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
