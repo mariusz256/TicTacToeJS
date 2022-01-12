@@ -1,164 +1,202 @@
-import * as THREE from "../build/three.module.js";
+var scene;
+var renderer;
+var camera;
+var axes;
+var plane;
+var stats;
 
-import { OrbitControls } from "./jsm/controls/OrbitControls.js";
+var controls = new (function () {
+  this.CameraPositionX = 2;
+  this.CameraPositionY = 10;
+  this.CameraPositionZ = 30;
+  this.SpotlightPositionX = -100;
+  this.SpotlightPositionY = 100;
+  this.SpotlightPositionZ = 200;
+})();
 
-let scene, camera, renderer, clock;
+function initStats() {
+  stats = new Stats();
+  stats.setMode(0); // 0: fps, 1: ms
 
-const objects = [];
+  // Align top-left
+  stats.domElement.style.position = "absolute";
+  stats.domElement.style.left = "0px";
+  stats.domElement.style.top = "0px";
 
-const speed = 2.5;
-const height = 3;
-const offset = 0.5;
+  document.getElementById("Stats-output").appendChild(stats.domElement);
 
-const startButton = document.getElementById("startButton");
-startButton.addEventListener("click", init);
+  return stats;
+}
 
-function init() {
-  const overlay = document.getElementById("overlay");
-  overlay.remove();
+function initRenderer() {
+  renderer = new THREE.WebGLRenderer();
+  renderer.setClearColor(0xeeeeee);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
 
-  const container = document.getElementById("container");
+function initPlane(data) {
+  plane = new THREE.Mesh(data.planeGeometry, data.planeMaterial);
+  plane.rotation.x = data.xRotation;
+  plane.position.x = data.x;
+  plane.position.y = data.y;
+  plane.position.z = data.z;
+  return plane;
+}
 
-  scene = new THREE.Scene();
-
-  clock = new THREE.Clock();
-
-  //
-
+function initCamera(data) {
   camera = new THREE.PerspectiveCamera(
     45,
     window.innerWidth / window.innerHeight,
     0.1,
-    100
+    1000
   );
-  camera.position.set(7, 3, 7);
+  camera.position.x = data.x;
+  camera.position.y = data.y;
+  camera.position.z = data.z;
+  camera.lookAt(scene.position);
+  camera.lookAt(new THREE.Vector3(-4, 3, 5));
+}
 
-  // lights
+function init() {
+  //console
+  var stats = initStats();
+  var gui = new dat.GUI();
+  var cameraFolder = gui.addFolder("Camera");
+  cameraFolder.add(controls, "CameraPositionX", -100, 100);
+  cameraFolder.add(controls, "CameraPositionY", -100, 100);
+  cameraFolder.add(controls, "CameraPositionZ", -100, 100);
+  var spotLightFolder = gui.addFolder("Spotlight");
+  spotLightFolder.add(controls, "SpotlightPositionX", -1000, 1000);
+  spotLightFolder.add(controls, "SpotlightPositionY", -1000, 1000);
+  spotLightFolder.add(controls, "SpotlightPositionZ", -1000, 1000);
 
-  const ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
-  scene.add(ambientLight);
-
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-  directionalLight.position.set(0, 5, 5);
-  scene.add(directionalLight);
-
-  const d = 5;
-  directionalLight.castShadow = true;
-  directionalLight.shadow.camera.left = -d;
-  directionalLight.shadow.camera.right = d;
-  directionalLight.shadow.camera.top = d;
-  directionalLight.shadow.camera.bottom = -d;
-
-  directionalLight.shadow.camera.near = 1;
-  directionalLight.shadow.camera.far = 20;
-
-  directionalLight.shadow.mapSize.x = 1024;
-  directionalLight.shadow.mapSize.y = 1024;
-
-  // audio
-
-  const audioLoader = new THREE.AudioLoader();
-
-  const listener = new THREE.AudioListener();
-  camera.add(listener);
-
-  // floor
-
-  const floorGeometry = new THREE.PlaneGeometry(10, 10);
-  const floorMaterial = new THREE.MeshLambertMaterial({ color: 0x4676b6 });
-
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.rotation.x = Math.PI * -0.5;
-  floor.receiveShadow = true;
-  scene.add(floor);
-
-  // objects
-
-  const count = 5;
-  const radius = 3;
-
-  const ballGeometry = new THREE.SphereGeometry(0.3, 32, 16);
-  ballGeometry.translate(0, 0.3, 0);
-  const ballMaterial = new THREE.MeshLambertMaterial({ color: 0xcccccc });
-
-  // create objects when audio buffer is loaded
-
-  audioLoader.load("sounds/ping_pong.mp3", function (buffer) {
-    for (let i = 0; i < count; i++) {
-      const s = (i / count) * Math.PI * 2;
-
-      const ball = new THREE.Mesh(ballGeometry, ballMaterial);
-      ball.castShadow = true;
-      ball.userData.down = false;
-
-      ball.position.x = radius * Math.cos(s);
-      ball.position.z = radius * Math.sin(s);
-
-      const audio = new THREE.PositionalAudio(listener);
-      audio.setBuffer(buffer);
-      ball.add(audio);
-
-      scene.add(ball);
-      objects.push(ball);
-    }
-
-    animate();
+  scene = new THREE.Scene();
+  initRenderer();
+  initPlane({
+    planeGeometry: new THREE.PlaneGeometry(60, 20, 1, 1),
+    planeMaterial: new THREE.MeshBasicMaterial({
+      color: 0xcccccc,
+    }),
+    xRotation: -0.5 * Math.PI,
+    x: 15,
+    y: 0,
+    z: 0,
   });
 
-  //
+  //initCamera({ x: -30, y: 40, z: 30 });
+  initCamera({
+    x: 2,
+    y: 10,
+    z: 30,
+  });
+  scene.add(camera);
+  //scene.add(plane);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.shadowMap.enabled = true;
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x000000);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  container.appendChild(renderer.domElement);
+  var spotLight = new THREE.SpotLight(0xffffff);
+  spotLight.position.set(-100, 100, 200);
+  scene.add(spotLight);
 
-  //
+  var ambiColor = "#0c0c0c";
+  var ambientLight = new THREE.AmbientLight(ambiColor);
+  scene.add(ambientLight);
 
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.minDistance = 1;
-  controls.maxDistance = 25;
+  var cubeGeometry = new THREE.BoxGeometry(4, 4, 4);
+  var cubeMaterial = new THREE.MeshLambertMaterial({
+    color: 0xff0000,
+    wireframe: false,
+  });
+  side1 = new THREE.Object3D();
+  addCube({
+    name: "side1topleft",
+    x: -8.5,
+    y: 7.5,
+    z: 5,
+  });
+  addCube({
+    name: "side1topmiddle",
+    x: -4,
+    y: 7.5,
+    z: 5,
+  });
+  addCube({
+    name: "side1topright",
+    x: 0.5,
+    y: 7.5,
+    z: 5,
+  });
+  addCube({
+    name: "side1middleleft",
+    x: -8.5,
+    y: 3,
+    z: 5,
+  });
+  addCube({
+    name: "side1middlemiddle",
+    x: -4,
+    y: 3,
+    z: 5,
+  });
+  addCube({
+    name: "side1middleright",
+    x: 0.5,
+    y: 3,
+    z: 5,
+  });
+  addCube({
+    name: "side1bottomleft",
+    x: -8.5,
+    y: -1.5,
+    z: 5,
+  });
+  addCube({
+    name: "side1bottommiddle",
+    x: -4,
+    y: -1.5,
+    z: 5,
+  });
+  addCube({
+    name: "side1bottomright",
+    x: 0.5,
+    y: -1.5,
+    z: 5,
+  });
 
-  //
+  var pivot = new THREE.Group();
+  scene.add(pivot);
+  pivot.add(side1);
+  side1.position.set(4, -3, -5);
 
-  window.addEventListener("resize", onWindowResize);
-}
+  //scene.add(side1);
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  render();
-}
-
-function render() {
-  const time = clock.getElapsedTime();
-
-  for (let i = 0; i < objects.length; i++) {
-    const ball = objects[i];
-
-    const previousHeight = ball.position.y;
-    ball.position.y = Math.abs(Math.sin(i * offset + time * speed) * height);
-
-    if (ball.position.y < previousHeight) {
-      ball.userData.down = true;
-    } else {
-      if (ball.userData.down === true) {
-        // ball changed direction from down to up
-
-        const audio = ball.children[0];
-        audio.play(); // play audio with perfect timing when ball hits the surface
-        ball.userData.down = false;
-      }
-    }
+  function addCube(data) {
+    var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    cube.position.x = data.x;
+    cube.position.y = data.y;
+    cube.position.z = data.z;
+    cube.rotation.set(0, 0, 0);
+    cube.name = data.name;
+    side1.add(cube);
   }
 
-  renderer.render(scene, camera);
+  $("#WebGL-output").append(renderer.domElement);
+  //document.getElementById("WebGL-output").appendChild(renderer.domElement);
+  renderScene();
+
+  function renderScene() {
+    stats.update();
+    //side1.rotation.z += 0.02;
+    pivot.rotation.z += 0.02;
+    camera.position.x = controls.CameraPositionX;
+    camera.position.y = controls.CameraPositionY;
+    camera.position.z = controls.CameraPositionZ;
+    spotLight.position.set(
+      controls.SpotlightPositionX,
+      controls.SpotlightPositionY,
+      controls.SpotlightPositionZ
+    );
+    requestAnimationFrame(renderScene);
+    renderer.render(scene, camera);
+  }
 }
+
+init();

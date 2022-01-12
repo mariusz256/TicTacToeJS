@@ -36,10 +36,11 @@ body {
 }
 
 .game__board {
-  width: 80vw;
+  width: 100%;
   margin: 0 auto;
   aspect-ratio: 4/3;
-  padding: 3rem;
+  margin-top: 3rem;
+  /* padding: 3rem; */
   display: flex;
   justify-content: center;
 }
