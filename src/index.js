@@ -1,6 +1,8 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { AmbientLight } from "three";
 
+let controls;
 let scene;
 let renderer;
 let camera;
@@ -8,6 +10,7 @@ let clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const boardMeshs = [];
+const playerO = [];
 
 init();
 
@@ -40,22 +43,37 @@ function initRenderer() {
 
 function initCamera() {
   console.log(renderer.domElement);
-
   camera = new THREE.PerspectiveCamera(
     110,
     renderer.domElement.width / renderer.domElement.height,
-    0.1,
-    100
+    1,
+    10000
   );
   camera.position.z = 5;
-  camera.position.y -= 8;
-  camera.rotateX(0.1);
-  camera.rotateY(0.03);
-  camera.rotateZ(0.03);
+  camera.position.y = 0;
+  // camera.rotateX(0.15);
+  // camera.rotateY(0.03);
+  // camera.rotateZ(0.03);
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.update();
 }
 
 function animate() {
   requestAnimationFrame(animate);
+
+  for (const O in playerO) {
+    let { x, y, z } = playerO[O].position;
+
+    if (z >= -4.5) {
+      //create function and use clock to animate
+
+      clock.start();
+
+      const eplased = clock.getDelta();
+      console.log(eplased);
+      playerO[O].position.set(x, y, (z += -1 * eplased));
+    }
+  }
 
   renderer.render(scene, camera);
 }
@@ -76,11 +94,11 @@ function createBoard() {
     const field = new THREE.Mesh(boardGeometry, boardMaterial);
 
     if (i < 3) {
-      field.position.set(-5 + i * 5.5, 0, -5);
+      field.position.set(-5 + i * 5.5, 5, -5);
     } else if (i >= 3 && i < 6) {
-      field.position.set(-5 + (i - 3) * 5.5, 0 - 5.5, -5);
+      field.position.set(-5 + (i - 3) * 5.5, 5 - 5.5, -5);
     } else {
-      field.position.set(-5 + (i - 6) * 5.5, 0 - 11, -5);
+      field.position.set(-5 + (i - 6) * 5.5, 5 - 11, -5);
     }
     field.player = "";
     field.boardId = i;
@@ -104,9 +122,12 @@ function renderPlayerOnBoard(field, player = "circle") {
       const geometry = new THREE.TorusGeometry(1.5, 0.35, 32, 300);
       const material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
       const torus = new THREE.Mesh(geometry, material);
-      torus.position.set(x, y, z + 0.5);
+      torus.position.set(x, y, z + 12);
+      playerO.push(torus);
+
       scene.add(torus);
-      console.log(boardMeshs);
+
+      // console.log(playerO, torus.position);
       break;
     default:
       console.log("Something went ");
@@ -117,9 +138,11 @@ function onMouseClick(event) {
   raycaster.setFromCamera(mouse, camera);
 
   const intersects = raycaster.intersectObjects(scene.children, true);
-  intersects[0] && console.log(intersects[0]);
+  intersects[0] && !intersects[0].object.player && console.log("istnieje");
 
-  intersects[0] && renderPlayerOnBoard(intersects[0]);
+  intersects[0] &&
+    !intersects[0].object.player &&
+    renderPlayerOnBoard(intersects[0]);
 
   // for (let i = 0; i < intersects.length; i++) {
   //   intersects[i].object.material.color.set(0xff0000);
