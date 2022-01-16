@@ -13,6 +13,7 @@ init();
 
 function init() {
   scene = new THREE.Scene();
+  // scene.background = new THREE.Color(0xff0000);
   initRenderer();
   initCamera();
   scene.add(camera);
@@ -30,10 +31,10 @@ function init() {
 
 function initRenderer() {
   const container = document.querySelector(".game__board");
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.offsetWidth * 0.8, container.offsetWidth * 0.5);
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setClearColor(0x000000);
+  renderer.setClearColor(0x000000, 0.1);
   container.appendChild(renderer.domElement);
 }
 
@@ -43,12 +44,12 @@ function initCamera() {
   camera = new THREE.PerspectiveCamera(
     110,
     renderer.domElement.width / renderer.domElement.height,
-    1,
-    2000
+    0.1,
+    100
   );
   camera.position.z = 5;
   camera.position.y -= 8;
-  camera.rotateX(0.15);
+  camera.rotateX(0.1);
   camera.rotateY(0.03);
   camera.rotateZ(0.03);
 }
