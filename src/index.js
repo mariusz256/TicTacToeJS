@@ -6,11 +6,11 @@ let controls;
 let scene;
 let renderer;
 let camera;
-let clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const boardMeshs = [];
-const playerO = [];
+const players = [];
+let nextPlayer = "circle";
 
 init();
 
@@ -60,18 +60,13 @@ function initCamera() {
 
 function animate() {
   requestAnimationFrame(animate);
+  let alpha = 0.1;
 
-  for (const O in playerO) {
-    let { x, y, z } = playerO[O].position;
+  for (const player in players) {
+    let { x, y, z } = players[player].position;
 
     if (z >= -4.5) {
-      //create function and use clock to animate
-
-      clock.start();
-
-      const eplased = clock.getDelta();
-      console.log(eplased);
-      playerO[O].position.set(x, y, (z += -1 * eplased));
+      players[player].position.lerp(new THREE.Vector3(x, y, -4.5), alpha);
     }
   }
 
@@ -109,9 +104,11 @@ function createBoard() {
   }
 }
 
-function renderPlayerOnBoard(field, player = "circle") {
+function renderplayersnBoard(field, player = "circle") {
   console.log(field);
   const { x, y, z } = field.object.position;
+
+  //create cross and circle modells gltf in blender
 
   switch (player) {
     case "cross":
@@ -123,11 +120,11 @@ function renderPlayerOnBoard(field, player = "circle") {
       const material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
       const torus = new THREE.Mesh(geometry, material);
       torus.position.set(x, y, z + 12);
-      playerO.push(torus);
-
+      players.push(torus);
       scene.add(torus);
+      nextPlayer = "cross";
 
-      // console.log(playerO, torus.position);
+      console.log(players, torus.position);
       break;
     default:
       console.log("Something went ");
@@ -142,7 +139,7 @@ function onMouseClick(event) {
 
   intersects[0] &&
     !intersects[0].object.player &&
-    renderPlayerOnBoard(intersects[0]);
+    renderplayersnBoard(intersects[0], nextPlayer);
 
   // for (let i = 0; i < intersects.length; i++) {
   //   intersects[i].object.material.color.set(0xff0000);
