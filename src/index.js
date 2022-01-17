@@ -104,7 +104,7 @@ function createBoard() {
   }
 }
 
-function renderplayersnBoard(field, player = "circle") {
+function renderplayersnBoard(field, player) {
   console.log(field);
   const { x, y, z } = field.object.position;
 
@@ -112,10 +112,14 @@ function renderplayersnBoard(field, player = "circle") {
 
   switch (player) {
     case "cross":
+      field.object.player = nextPlayer;
       console.log(player);
+      nextPlayer = "circle";
+      console.log(boardMeshs);
+
       break;
     case "circle":
-      field.object.player = "circle";
+      field.object.player = nextPlayer;
       const geometry = new THREE.TorusGeometry(1.5, 0.35, 32, 300);
       const material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
       const torus = new THREE.Mesh(geometry, material);
